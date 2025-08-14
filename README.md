@@ -166,8 +166,69 @@ Traffic can only get through on our tailscale network.
 
 Now you should be able to open http://<device-name> in a browser and see the podinfo ui.
 
+# Modifications for gitea
+
+On a fresh cluster install gitea with helm
+
+```
+sudo -E helm install gitea gitea-charts/gitea
+```
+
+Now that gitea is set up modify it to allow ingress.
+Grab values
+
+```
+sudo -E helm show values gitea-charts/gitea > values.yaml
+```
+
+Then edit them to enable ingress, replace with your server hostname
+
+```
+ingress:
+  enabled: true
+  className: ""
+  pathType: Prefix
+  annotations: {}
+  hosts:
+    - host: <server-hostname>
+      paths:
+        - path: /
+  tls: []
+```
+
+Next update to reflect these new values
+
+```
+sudo -E helm upgrade gitea gitea-charts/gitea -f values.yaml
+```
+
+Now you should be able to access gitea.
+Go to http://<server-hostname> in a browser.
+Create a new account.
+Give it an insecure password on purpose; in the next step you will potentially expose this password.
+
+Now we need to bootstrap flux.
+I tried these options with a personal access tokens as discussed in the flux docs for gitea but it failed
+
+```
+sudo -E  flux bootstrap gitea --owner=spacetracks --repository=flux --private=false --personal=true --path=./clusters/my-cluster --hostname=spacetracks-ser --insecure-skip-tls-verify
+```
+
+The reason is traefik supplies a default cert that doesn't match my hostname.
+Then I found this option that worked
+
+```
+sudo -E flux bootstrap git --url http://spacetracks-ser/spacetracks/flux --username=spacetracks --password=password --allow-insecure-http=true --token-auth=true --branch=main
+```
+
+It's incredibly insecure, using http and exposing the password directly.
+But given the server is walled off in a vpn its fine.
+The username and password are visible but they aren't part of the security.
+
+
 # Resources
 - https://docs.k3s.io/quick-start
 - https://fluxcd.io/flux/get-started
+- https://fluxcd.io/flux/cmd/flux_bootstrap_gitea
 - https://tailscale.com/kb/1017/install
 - https://g.co/gemini/share/07d9ccfd2ac1
