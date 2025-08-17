@@ -225,6 +225,46 @@ It's incredibly insecure, using http and exposing the password directly.
 But given the server is walled off in a vpn its fine.
 The username and password are visible but they aren't part of the security.
 
+# Routing
+
+I spent way too long trying to get gitea to route to an address other than the magic dns address provided by tailscale.
+I eventually gave up and went with a non-default port,
+but I learned a lot along the way.
+The final values.yaml for gitea
+```
+ingress:
+  enabled: false
+service:
+  http:
+    type: NodePort
+    port: 3000
+    nodePort: 30080
+  ssh:
+    type: NodePort
+    port: 22
+    nodePort: 30022
+```
+
+K3s will route port 30080 to gitea port 3000.
+It doesn't pass through ingress.
+
+The three approaches considered are:
+* Path
+* Subdomain
+* Port
+
+Path almost worked but ultimately failed because gitea can't call its own API.
+When it makes the call the hostname gets replaced with localhost.
+Then it makes the call to localhost/gitea which doesn't exist.
+On the other hand when the user navigates to <magicdns>/gitea traefik correctly routes.
+
+Subdomain is a good approach but just doesn't work with tailscale magicdns.
+It's a frequently requested feature.
+If not using tailscale for dns you can make subdomains work but you have to configure it yourself.
+
+Ports are arcane but just work.
+DNS doesn't touch them.
+
 
 # Resources
 - https://docs.k3s.io/quick-start
