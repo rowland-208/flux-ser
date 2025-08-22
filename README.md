@@ -265,6 +265,17 @@ If not using tailscale for dns you can make subdomains work but you have to conf
 Ports are arcane but just work.
 DNS doesn't touch them.
 
+# Gitea runners
+
+I ran into a lot of networking issues trying to set up gitea actions runners.
+It turns out the way I had gitea configured made networking between pods a nightmare.
+Setting this in the values.yaml file uses the internal network instead of routing out through tailscale.
+If this is left default it will inherit value from ingress.
+```
+       72 +  # Gitea instance URL - use internal Kubernetes service
+       73 +  giteaRootURL: "http://gitea-http:3000"
+```
+
 
 # Resources
 - https://docs.k3s.io/quick-start
