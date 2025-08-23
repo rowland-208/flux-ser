@@ -276,6 +276,42 @@ If this is left default it will inherit value from ingress.
        73 +  giteaRootURL: "http://gitea-http:3000"
 ```
 
+# Gitea ssh
+
+I ran into more networking issues getting ssh working.
+One of the issues was silly and not networking related,
+I created an ssh key as root and tried using it as user, lesson learned.
+The other is the gitea ssh service needs to be exposed to the cluster,
+nodeport is the easiest option.
+In the gitea values:
+```
+ssh:
+    annotations: {}
+    clusterIP: null
+    externalIPs: null
+    externalTrafficPolicy: null
+    hostPort: null
+    ipFamilies: null
+    ipFamilyPolicy: null
+    labels: {}
+    loadBalancerClass: null
+    loadBalancerIP: null
+    loadBalancerSourceRanges: []
+    nodePort: 30022
+    port: 22
+    type: NodePort
+```
+Also note the ssh config needs to specify the port
+
+```
+Host spacetracks-ser
+  HostName spacetracks-ser
+  Port 30022
+  User git
+  IdentityFile ~/.ssh/gitea_runner_test
+  StrictHostKeyChecking no
+```
+
 
 # Resources
 - https://docs.k3s.io/quick-start
