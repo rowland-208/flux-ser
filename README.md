@@ -312,6 +312,33 @@ Host spacetracks-ser
   StrictHostKeyChecking no
 ```
 
+# Static IP
+
+I ran into issues when my IP rotated.
+Cluster nodes should have static IP as a rule of thumb.
+It's possible to swap out the IPs in k3s config after the fact,
+but way more painful than setting static IP.
+This means if you move your cluster to a new network
+you will have to manually update the IPs.
+But you would have to do something similar if you use dynamic IPs.
+
+First get network info
+```
+nmcli connection show
+```
+
+Then set it
+```
+sudo nmcli connection modify "LWDavis" ipv4.method manual ipv4.addresses 192.168.1.170/24 ipv4.gateway 192.168.1.1 ipv4.dns 8.8.8.8,8.8.4.4
+```
+
+Now reactivate
+```
+sudo nmcli connection up "LWDavis"
+```
+
+Replace "LWDavis" with your network name. And replace 192.168.1.70/24 with the IP you want; and 192.168.1.1 with your router IP. 
+
 
 # Resources
 - https://docs.k3s.io/quick-start
